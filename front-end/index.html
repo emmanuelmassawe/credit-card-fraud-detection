@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credit Card Fraud Detection System</title>
+    <link rel="stylesheet" href="static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-shield-alt"></i>
+                <h1>FraudShield AI</h1>
+            </div>
+            <nav class="nav">
+                <a href="#home" class="nav-link active">Home</a>
+                <a href="#detect" class="nav-link">Detect</a>
+                <a href="#about" class="nav-link">About</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="hero-bg"></div>
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <i class="fas fa-robot"></i> AI-Powered Detection
+                </div>
+                <h2 class="hero-title">
+                    Credit Card Fraud <br>
+                    <span class="gradient-text">Detection System</span>
+                </h2>
+                <p class="hero-subtitle">
+                    Real-time fraud detection using XGBoost and SMOTE technology.
+                    Protect your transactions with cutting-edge machine learning.
+                </p>
+                <div class="hero-stats">
+                    <div class="stat-card">
+                        <i class="fas fa-brain"></i>
+                        <h3>XGBoost</h3>
+                        <p>ML Algorithm</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-chart-line"></i>
+                        <h3>99%+</h3>
+                        <p>Accuracy</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-bolt"></i>
+                        <h3>Real-Time</h3>
+                        <p>Instant Results</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-database"></i>
+                        <h3>284K+</h3>
+                        <p>Transactions</p>
+                    </div>
+                </div>
+                <a href="#detect" class="cta-button">
+                    <i class="fas fa-search"></i>
+                    Start Detection
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Detection Section -->
+    <section class="detection-section" id="detect">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Transaction Analysis</h2>
+                <p class="section-subtitle">Enter transaction details to detect fraud instantly</p>
+            </div>
+
+            <!-- Quick Test Buttons -->
+            <div class="quick-test">
+                <h3><i class="fas fa-flask"></i> Quick Test:</h3>
+                <div class="test-buttons">
+                    <button class="test-btn normal-btn" onclick="loadNormalTransaction()">
+                        <i class="fas fa-check-circle"></i>
+                        Normal Transaction
+                    </button>
+                    <button class="test-btn fraud-btn" onclick="loadFraudTransaction()">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Fraud Transaction
+                    </button>
+                    <button class="test-btn random-btn" onclick="loadRandomTransaction()">
+                        <i class="fas fa-random"></i>
+                        Random Transaction
+                    </button>
+                </div>
+            </div>
+
+            <div class="detection-grid">
+                <!-- Input Form -->
+                <div class="card form-card">
+                    <div class="card-header">
+                        <h3>
+                            <i class="fas fa-keyboard"></i>
+                            Transaction Details
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="predictionForm">
+                            <div class="form-grid-2">
+                                <div class="form-group">
+                                    <label for="time">
+                                        <i class="fas fa-clock"></i> Time
+                                    </label>
+                                    <input type="number" id="time" placeholder="0.0" step="any" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="amount">
+                                        <i class="fas fa-dollar-sign"></i> Amount ($)
+                                    </label>
+                                    <input type="number" id="amount" placeholder="0.00" step="any" required>
+                                </div>
+                            </div>
+
+                            <div class="pca-section">
+                                <div class="pca-header">
+                                    <h4><i class="fas fa-table"></i> PCA Features (V1 - V28)</h4>
+                                    <span class="pca-badge">Anonymized</span>
+                                </div>
+                                <div class="form-grid-pca">
+                                    <input type="number" id="v1" placeholder="V1" step="any" required>
+                                    <input type="number" id="v2" placeholder="V2" step="any" required>
+                                    <input type="number" id="v3" placeholder="V3" step="any" required>
+                                    <input type="number" id="v4" placeholder="V4" step="any" required>
+                                    <input type="number" id="v5" placeholder="V5" step="any" required>
+                                    <input type="number" id="v6" placeholder="V6" step="any" required>
+                                    <input type="number" id="v7" placeholder="V7" step="any" required>
+                                    <input type="number" id="v8" placeholder="V8" step="any" required>
+                                    <input type="number" id="v9" placeholder="V9" step="any" required>
+                                    <input type="number" id="v10" placeholder="V10" step="any" required>
+                                    <input type="number" id="v11" placeholder="V11" step="any" required>
+                                    <input type="number" id="v12" placeholder="V12" step="any" required>
+                                    <input type="number" id="v13" placeholder="V13" step="any" required>
+                                    <input type="number" id="v14" placeholder="V14" step="any" required>
+                                    <input type="number" id="v15" placeholder="V15" step="any" required>
+                                    <input type="number" id="v16" placeholder="V16" step="any" required>
+                                    <input type="number" id="v17" placeholder="V17" step="any" required>
+                                    <input type="number" id="v18" placeholder="V18" step="any" required>
+                                    <input type="number" id="v19" placeholder="V19" step="any" required>
+                                    <input type="number" id="v20" placeholder="V20" step="any" required>
+                                    <input type="number" id="v21" placeholder="V21" step="any" required>
+                                    <input type="number" id="v22" placeholder="V22" step="any" required>
+                                    <input type="number" id="v23" placeholder="V23" step="any" required>
+                                    <input type="number" id="v24" placeholder="V24" step="any" required>
+                                    <input type="number" id="v25" placeholder="V25" step="any" required>
+                                    <input type="number" id="v26" placeholder="V26" step="any" required>
+                                    <input type="number" id="v27" placeholder="V27" step="any" required>
+                                    <input type="number" id="v28" placeholder="V28" step="any" required>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="submit-btn" id="submitBtn">
+                                <i class="fas fa-search"></i>
+                                Analyze Transaction
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Results Panel -->
+                <div class="results-panel">
+                    <!-- Empty State -->
+                    <div class="card empty-state" id="emptyState">
+                        <div class="empty-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h3>Ready to Analyze</h3>
+                        <p>Fill in the transaction details or use Quick Test buttons to get started</p>
+                    </div>
+
+                    <!-- Results Card -->
+                    <div class="card results-card" id="resultsCard" style="display: none;">
+                        <div class="card-header">
+                            <h3>
+                                <i class="fas fa-chart-bar"></i>
+                                Analysis Results
+                            </h3>
+                        </div>
+                        <div class="card-body" id="resultContent">
+                            <!-- Results will be inserted here by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about-section" id="about">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">About This System</h2>
+                <p class="section-subtitle">Built with MLOps best practices</p>
+            </div>
+            <div class="about-grid">
+                <div class="about-card">
+                    <div class="about-icon">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <h3>Technology Stack</h3>
+                    <ul>
+                        <li><i class="fas fa-check"></i> XGBoost Machine Learning</li>
+                        <li><i class="fas fa-check"></i> SMOTE Resampling</li>
+                        <li><i class="fas fa-check"></i> FastAPI Backend</li>
+                        <li><i class="fas fa-check"></i> MLflow Tracking</li>
+                        <li><i class="fas fa-check"></i> DVC Data Versioning</li>
+                        <li><i class="fas fa-check"></i> Prefect Orchestration</li>
+                    </ul>
+                </div>
+                <div class="about-card">
+                    <div class="about-icon">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <h3>Dataset Info</h3>
+                    <ul>
+                        <li><i class="fas fa-check"></i> Kaggle Credit Card Dataset</li>
+                        <li><i class="fas fa-check"></i> 284,807 Transactions</li>
+                        <li><i class="fas fa-check"></i> 30 Features (PCA)</li>
+                        <li><i class="fas fa-check"></i> 0.17% Fraud Rate</li>
+                        <li><i class="fas fa-check"></i> Highly Imbalanced</li>
+                        <li><i class="fas fa-check"></i> SMOTE Balanced</li>
+                    </ul>
+                </div>
+                <div class="about-card">
+                    <div class="about-icon">
+                        <i class="fas fa-project-diagram"></i>
+                    </div>
+                    <h3>MLOps Pipeline</h3>
+                    <ul>
+                        <li><i class="fas fa-check"></i> Data Ingestion</li>
+                        <li><i class="fas fa-check"></i> Preprocessing</li>
+                        <li><i class="fas fa-check"></i> SMOTE Resampling</li>
+                        <li><i class="fas fa-check"></i> Model Training</li>
+                        <li><i class="fas fa-check"></i> Evaluation & Metrics</li>
+                        <li><i class="fas fa-check"></i> Docker Deployment</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>FraudShield AI</span>
+                </div>
+                <p>Built with ❤️ using MLOps best practices</p>
+                <div class="footer-links">
+                    <a href="http://localhost:8000/docs" target="_blank">
+                        <i class="fas fa-book"></i> API Docs
+                    </a>
+                    <a href="https://dagshub.com/emmanuelmassawe200/credit-card-fraud-detection" target="_blank">
+                        <i class="fas fa-database"></i> DagsHub
+                    </a>
+                    <a href="https://github.com" target="_blank">
+                        <i class="fab fa-github"></i> GitHub
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="static/js/app.js"></script>
+</body>
+</html>

@@ -9,3 +9,12 @@ matplotlib
 seaborn
 fastapi
 xgboost
+uvicorn[standard]
+pydantic
+aiofiles
+# ... existing dependencies ...
+
+# Testing
+pytest
+pytest-cov
+httpx
