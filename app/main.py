@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
+from contextlib import asynccontextmanager
 import uvicorn
 import logging
 import pickle
@@ -13,16 +14,51 @@ from pathlib import Path
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Create FastAPI app
+# ==================== LOAD MODEL ====================
+model = None
+scaler = None
+
+def load_model():
+    """Load model and scaler from disk"""
+    global model, scaler
+    try:
+        with open("models/xgboost_model.pkl", "rb") as f:
+            model = pickle.load(f)
+        logger.info("✅ Model loaded successfully")
+
+        with open("models/scaler.pkl", "rb") as f:
+            scaler = pickle.load(f)
+        logger.info("✅ Scaler loaded successfully")
+
+    except Exception as e:
+        logger.error(f"❌ Error loading model: {str(e)}")
+        raise
+
+# ==================== LIFESPAN ====================
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Modern FastAPI lifespan event handler"""
+    # Startup
+    logger.info("🚀 Starting up...")
+    load_model()
+    logger.info("✅ Application ready!")
+    
+    yield  # Application runs here
+    
+    # Shutdown
+    logger.info("🛑 Shutting down...")
+
+# ==================== CREATE APP ====================
 app = FastAPI(
     title="Credit Card Fraud Detection API",
     description="Real-time fraud detection using XGBoost + SMOTE",
     version="1.0.0",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    lifespan=lifespan  # Use lifespan instead of on_event
 )
 
-# CORS - Allow all origins
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -70,49 +106,18 @@ class PredictionResponse(BaseModel):
     fraud_probability: float
     confidence: float
 
-# ==================== LOAD MODEL ====================
-model = None
-scaler = None
-
-def load_model():
-    global model, scaler
-    try:
-        with open("models/xgboost_model.pkl", "rb") as f:
-            model = pickle.load(f)
-        logger.info("✅ Model loaded successfully")
-        
-        with open("models/scaler.pkl", "rb") as f:
-            scaler = pickle.load(f)
-        logger.info("✅ Scaler loaded successfully")
-        
-    except Exception as e:
-        logger.error(f"❌ Error loading model: {str(e)}")
-        raise
-
-@app.on_event("startup")
-async def startup_event():
-    """Load model on startup"""
-    load_model()
-    logger.info("🚀 FastAPI server started!")
-    logger.info("📊 Model: XGBoost")
-    logger.info("🔧 SMOTE: Enabled")
-
 # ==================== SERVE FRONTEND ====================
-
-# Serve static files (CSS, JS)
 if Path("frontend").exists():
     app.mount("/static", StaticFiles(directory="frontend"), name="static")
-    
-    @app.get("/")
+
+    @app.get("/", include_in_schema=False)
     async def serve_frontend():
-        """Serve the frontend HTML"""
         return FileResponse("frontend/index.html")
 
 # ==================== API ENDPOINTS ====================
 
 @app.get("/api")
 async def api_root():
-    """API root endpoint"""
     return {
         "app": "Credit Card Fraud Detection API",
         "version": "1.0.0",
@@ -123,7 +128,6 @@ async def api_root():
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint"""
     return {
         "status": "healthy" if model is not None and scaler is not None else "unhealthy",
         "model_loaded": model is not None,
@@ -132,17 +136,8 @@ async def health_check():
 
 @app.post("/predict", response_model=PredictionResponse)
 async def predict_transaction(transaction: TransactionInput):
-    """
-    Predict if a credit card transaction is fraudulent
-    
-    Returns:
-        - prediction: 0 (Normal) or 1 (Fraud)
-        - prediction_label: "Normal" or "Fraud"
-        - fraud_probability: Probability of fraud (0-1)
-        - confidence: Model confidence (0-100%)
-    """
-    
-    # Check if model is loaded
+    """Predict if a credit card transaction is fraudulent"""
+
     if model is None or scaler is None:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -150,24 +145,17 @@ async def predict_transaction(transaction: TransactionInput):
         )
 
     try:
-        # Convert transaction to DataFrame
         data = transaction.dict()
         df = pd.DataFrame([data])
-        
-        logger.info(f"📥 Received transaction: Amount=${data['Amount']:.2f}, Time={data['Time']:.0f}")
 
-        # Scale the data
+        logger.info(f"📥 Transaction: Amount=${data['Amount']:.2f}")
+
         scaled_data = scaler.transform(df)
-
-        # Make prediction
         prediction = int(model.predict(scaled_data)[0])
         probabilities = model.predict_proba(scaled_data)[0]
         fraud_probability = float(probabilities[1])
-
-        # Calculate confidence
         confidence = fraud_probability * 100 if prediction == 1 else (1 - fraud_probability) * 100
 
-        # Prepare response
         result = {
             "prediction": prediction,
             "prediction_label": "Fraud" if prediction == 1 else "Normal",
@@ -175,8 +163,7 @@ async def predict_transaction(transaction: TransactionInput):
             "confidence": round(confidence, 2)
         }
 
-        logger.info(f"✅ Prediction: {result['prediction_label']} | Fraud Prob: {fraud_probability:.4f} | Confidence: {confidence:.2f}%")
-
+        logger.info(f"✅ Result: {result['prediction_label']} | Prob: {fraud_probability:.4f}")
         return result
 
     except Exception as e:
@@ -186,7 +173,6 @@ async def predict_transaction(transaction: TransactionInput):
             detail=f"Prediction failed: {str(e)}"
         )
 
-# ==================== RUN ====================
 if __name__ == "__main__":
     uvicorn.run(
         "app.main:app",

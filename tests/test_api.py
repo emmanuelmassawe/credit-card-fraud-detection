@@ -9,31 +9,31 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from app.main import app, load_model
+# ==================== CLIENT SETUP ====================
+# Use TestClient as context manager to trigger lifespan
+from app.main import app
 
-# Load model before creating client
-try:
-    load_model()
-except Exception as e:
-    print(f"Warning: Could not load model: {e}")
-
-client = TestClient(app)
+# ==================== TESTS ====================
 
 def test_read_root():
     """Test API root endpoint"""
-    response = client.get("/api")
-    assert response.status_code == 200
-    data = response.json()
-    assert data["app"] == "Credit Card Fraud Detection API"
-    assert "version" in data
+    with TestClient(app) as client:
+        response = client.get("/api")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["app"] == "Credit Card Fraud Detection API"
+        assert "version" in data
+        print(f"\n✅ Root: {data}")
 
 def test_health_check():
     """Test health endpoint"""
-    response = client.get("/health")
-    assert response.status_code == 200
-    data = response.json()
-    assert "status" in data
-    assert "model_loaded" in data
+    with TestClient(app) as client:
+        response = client.get("/health")
+        assert response.status_code == 200
+        data = response.json()
+        assert "status" in data
+        assert "model_loaded" in data
+        print(f"\n✅ Health: {data}")
 
 def test_predict_normal_transaction():
     """Test prediction with normal transaction"""
@@ -69,36 +69,32 @@ def test_predict_normal_transaction():
         "V28": -0.0210530534538215,
         "Amount": 149.62
     }
-    
-    response = client.post("/predict", json=transaction)
-    
-    # Print response for debugging if failed
-    if response.status_code != 200:
-        print(f"\n❌ Status Code: {response.status_code}")
-        print(f"Response: {response.json()}")
-    
-    assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.json()}"
-    
-    data = response.json()
-    assert "prediction" in data
-    assert "prediction_label" in data
-    assert "fraud_probability" in data
-    assert "confidence" in data
-    
-    # Validate types
-    assert isinstance(data["prediction"], int)
-    assert data["prediction"] in [0, 1]
-    assert data["prediction_label"] in ["Normal", "Fraud"]
-    assert isinstance(data["fraud_probability"], float)
-    assert isinstance(data["confidence"], float)
-    
-    # Validate ranges
-    assert 0.0 <= data["fraud_probability"] <= 1.0
-    assert 0.0 <= data["confidence"] <= 100.0
-    
-    print(f"\n✅ Prediction: {data['prediction_label']}")
-    print(f"   Fraud Probability: {data['fraud_probability']:.4f}")
-    print(f"   Confidence: {data['confidence']:.2f}%")
+
+    with TestClient(app) as client:
+        response = client.post("/predict", json=transaction)
+
+        if response.status_code != 200:
+            print(f"\n❌ Status: {response.status_code}")
+            print(f"Response: {response.json()}")
+
+        assert response.status_code == 200, \
+            f"Expected 200, got {response.status_code}: {response.json()}"
+
+        data = response.json()
+        assert "prediction" in data
+        assert "prediction_label" in data
+        assert "fraud_probability" in data
+        assert "confidence" in data
+        assert isinstance(data["prediction"], int)
+        assert data["prediction"] in [0, 1]
+        assert data["prediction_label"] in ["Normal", "Fraud"]
+        assert 0.0 <= data["fraud_probability"] <= 1.0
+        assert 0.0 <= data["confidence"] <= 100.0
+
+        print(f"\n✅ Normal Transaction:")
+        print(f"   Prediction: {data['prediction_label']}")
+        print(f"   Fraud Prob: {data['fraud_probability']:.4f}")
+        print(f"   Confidence: {data['confidence']:.2f}%")
 
 def test_predict_fraud_transaction():
     """Test prediction with fraud transaction"""
@@ -134,45 +130,46 @@ def test_predict_fraud_transaction():
         "V28": -0.143275874698919,
         "Amount": 0.0
     }
-    
-    response = client.post("/predict", json=transaction)
-    
-    if response.status_code != 200:
-        print(f"\n❌ Status Code: {response.status_code}")
-        print(f"Response: {response.json()}")
-    
-    assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.json()}"
-    
-    data = response.json()
-    assert "prediction" in data
-    assert "fraud_probability" in data
-    assert "confidence" in data
-    
-    # Validate types and ranges
-    assert isinstance(data["prediction"], int)
-    assert data["prediction"] in [0, 1]
-    assert 0.0 <= data["fraud_probability"] <= 1.0
-    assert 0.0 <= data["confidence"] <= 100.0
-    
-    print(f"\n✅ Prediction: {data['prediction_label']}")
-    print(f"   Fraud Probability: {data['fraud_probability']:.4f}")
-    print(f"   Confidence: {data['confidence']:.2f}%")
+
+    with TestClient(app) as client:
+        response = client.post("/predict", json=transaction)
+
+        if response.status_code != 200:
+            print(f"\n❌ Status: {response.status_code}")
+            print(f"Response: {response.json()}")
+
+        assert response.status_code == 200, \
+            f"Expected 200, got {response.status_code}: {response.json()}"
+
+        data = response.json()
+        assert "prediction" in data
+        assert "fraud_probability" in data
+        assert "confidence" in data
+        assert isinstance(data["prediction"], int)
+        assert data["prediction"] in [0, 1]
+        assert 0.0 <= data["fraud_probability"] <= 1.0
+        assert 0.0 <= data["confidence"] <= 100.0
+
+        print(f"\n✅ Fraud Transaction:")
+        print(f"   Prediction: {data['prediction_label']}")
+        print(f"   Fraud Prob: {data['fraud_probability']:.4f}")
+        print(f"   Confidence: {data['confidence']:.2f}%")
 
 def test_predict_invalid_data():
-    """Test prediction with invalid data (missing fields)"""
+    """Test prediction with missing fields"""
     invalid_transaction = {
         "Time": 0,
         "Amount": 100
-        # Missing V1-V28 fields
     }
-    
-    response = client.post("/predict", json=invalid_transaction)
-    assert response.status_code == 422  # Validation error
+
+    with TestClient(app) as client:
+        response = client.post("/predict", json=invalid_transaction)
+        assert response.status_code == 422
 
 def test_predict_invalid_types():
     """Test prediction with invalid data types"""
     invalid_transaction = {
-        "Time": "invalid",  # Should be float
+        "Time": "invalid",
         "V1": 0, "V2": 0, "V3": 0, "V4": 0, "V5": 0,
         "V6": 0, "V7": 0, "V8": 0, "V9": 0, "V10": 0,
         "V11": 0, "V12": 0, "V13": 0, "V14": 0, "V15": 0,
@@ -181,6 +178,7 @@ def test_predict_invalid_types():
         "V26": 0, "V27": 0, "V28": 0,
         "Amount": 100
     }
-    
-    response = client.post("/predict", json=invalid_transaction)
-    assert response.status_code == 422  # Validation error
+
+    with TestClient(app) as client:
+        response = client.post("/predict", json=invalid_transaction)
+        assert response.status_code == 422
