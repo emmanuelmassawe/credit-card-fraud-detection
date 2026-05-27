@@ -1,2 +1,4 @@
+[core]
+    remote = origin
 ['remote "origin"']
     url = https://dagshub.com/emmanuelmassawe200/credit-card-fraud-detection.dvc
