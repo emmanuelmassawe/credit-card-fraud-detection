@@ -1,0 +1,145 @@
+schema: '2.0'
+stages:
+  data_preprocessing:
+    cmd: python -m src.data_preprocessing
+    deps:
+    - path: data/raw/creditcard.csv
+      hash: md5
+      md5: e90efcb83d69faf99fcab8b0255024de
+      size: 150828752
+    - path: src/data_preprocessing.py
+      hash: md5
+      md5: 278e900bf5cd0ca929d6b71a3759cb7f
+      size: 3787
+    - path: src/utils.py
+      hash: md5
+      md5: 07a710fa8d75b5d97ca0cc2df8bf4165
+      size: 1020
+    params:
+      params.yaml:
+        base:
+          random_state: 42
+          test_size: 0.2
+          target_column: Class
+        preprocessing:
+          numerical_imputer: median
+          categorical_imputer: most_frequent
+          scaler: standard
+        sampling:
+          strategy: SMOTE
+          sampling_strategy: auto
+          k_neighbors: 5
+    outs:
+    - path: data/processed/test.csv
+      hash: md5
+      md5: 1b81ea95c14871635cb48094ec0b4528
+      size: 33976055
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 3f21438096d1abd4823690a6a9bb2c5e
+      size: 268910527
+    - path: models/scaler.pkl
+      hash: md5
+      md5: 25c73c816cc96b529385e2cc36774dd1
+      size: 1398
+  train:
+    cmd: python -m src.train
+    deps:
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 3f21438096d1abd4823690a6a9bb2c5e
+      size: 268910527
+    - path: src/train.py
+      hash: md5
+      md5: ba276a67d53c2a5ee49f28d43f46f8f7
+      size: 3602
+    - path: src/utils.py
+      hash: md5
+      md5: 07a710fa8d75b5d97ca0cc2df8bf4165
+      size: 1020
+    params:
+      params.yaml:
+        base:
+          random_state: 42
+          test_size: 0.2
+          target_column: Class
+        model:
+          name: xgboost
+          n_estimators: 100
+          max_depth: 6
+          learning_rate: 0.1
+          min_child_weight: 1
+          subsample: 0.8
+          colsample_bytree: 0.8
+          scale_pos_weight: 1
+    outs:
+    - path: models/run_id.txt
+      hash: md5
+      md5: 1b1741c6b96fc7a98eb45b2e2c25ca9a
+      size: 32
+    - path: models/xgboost_model.pkl
+      hash: md5
+      md5: a6378024dabaf4643e1faaff40b67db9
+      size: 344260
+  evaluate:
+    cmd: python -m src.evaluate
+    deps:
+    - path: data/processed/test.csv
+      hash: md5
+      md5: 1b81ea95c14871635cb48094ec0b4528
+      size: 33976055
+    - path: models/xgboost_model.pkl
+      hash: md5
+      md5: a6378024dabaf4643e1faaff40b67db9
+      size: 344260
+    - path: src/evaluate.py
+      hash: md5
+      md5: c52a6669fdda9cdfba9209fefe6f91ae
+      size: 5942
+    - path: src/utils.py
+      hash: md5
+      md5: 07a710fa8d75b5d97ca0cc2df8bf4165
+      size: 1020
+    params:
+      params.yaml:
+        base:
+          random_state: 42
+          test_size: 0.2
+          target_column: Class
+        evaluation:
+          metrics:
+          - accuracy
+          - f1_score
+          - roc_auc
+          - precision
+          - recall
+        model:
+          name: xgboost
+          n_estimators: 100
+          max_depth: 6
+          learning_rate: 0.1
+          min_child_weight: 1
+          subsample: 0.8
+          colsample_bytree: 0.8
+          scale_pos_weight: 1
+    outs:
+    - path: reports/classification_report.txt
+      hash: md5
+      md5: 0512af9033ea97afee4585e9edd81242
+      size: 334
+    - path: reports/confusion_matrix.png
+      hash: md5
+      md5: 7a373aa92c75cfeade2471a928888a3b
+      size: 37598
+    - path: reports/metrics.json
+      hash: md5
+      md5: a31f8d81aefd3ab24f7949299d7f468e
+      size: 187
+    - path: reports/pr_curve.png
+      hash: md5
+      md5: 9e65761314e832942e3d312e09fbdf49
+      size: 29906
+    - path: reports/roc_curve.png
+      hash: md5
+      md5: d24a7fe4a61475f86c7e9ebcc80208a7
+      size: 54188

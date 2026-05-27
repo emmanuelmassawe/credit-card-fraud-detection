@@ -8,3 +8,4 @@ prefect
 matplotlib
 seaborn
 fastapi
+xgboost

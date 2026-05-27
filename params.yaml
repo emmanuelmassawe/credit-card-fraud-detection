@@ -1,0 +1,38 @@
+base:
+  random_state: 42
+  test_size: 0.2
+  target_column: "Class"
+
+data:
+  raw_data_path: "data/raw/creditcard.csv"
+  processed_data_path: "data/processed/"
+  train_path: "data/processed/train.csv"
+  test_path: "data/processed/test.csv"
+
+preprocessing:
+  numerical_imputer: "median"
+  categorical_imputer: "most_frequent"
+  scaler: "standard"
+
+sampling:
+  strategy: "SMOTE"
+  sampling_strategy: "auto"
+  k_neighbors: 5
+
+model:
+  name: "xgboost"
+  n_estimators: 100
+  max_depth: 6
+  learning_rate: 0.1
+  min_child_weight: 1
+  subsample: 0.8
+  colsample_bytree: 0.8
+  scale_pos_weight: 1
+
+evaluation:
+  metrics:
+    - accuracy
+    - f1_score
+    - roc_auc
+    - precision
+    - recall

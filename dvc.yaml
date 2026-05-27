@@ -1,0 +1,52 @@
+stages:
+  data_preprocessing:
+    cmd: python -m src.data_preprocessing
+    deps:
+      - src/data_preprocessing.py
+      - src/utils.py
+      - data/raw/creditcard.csv
+    params:
+      - params.yaml:
+          - base
+          - preprocessing
+          - sampling
+    outs:
+      - data/processed/train.csv
+      - data/processed/test.csv
+      - models/scaler.pkl
+
+  train:
+    cmd: python -m src.train
+    deps:
+      - src/train.py
+      - src/utils.py
+      - data/processed/train.csv
+    params:
+      - params.yaml:
+          - base
+          - model
+    outs:
+      - models/xgboost_model.pkl
+      - models/run_id.txt
+
+  evaluate:
+    cmd: python -m src.evaluate
+    deps:
+      - src/evaluate.py
+      - src/utils.py
+      - data/processed/test.csv
+      - models/xgboost_model.pkl
+    params:
+      - params.yaml:
+          - base
+          - model
+          - evaluation
+    metrics:
+      - reports/metrics.json:
+          cache: false
+    plots:
+      - reports/confusion_matrix.png
+      - reports/roc_curve.png
+      - reports/pr_curve.png
+    outs:
+      - reports/classification_report.txt
