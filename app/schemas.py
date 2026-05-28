@@ -1,8 +1,11 @@
+from typing import List
+
 from pydantic import BaseModel, Field
-from typing import List, Optional
+
 
 class TransactionInput(BaseModel):
     """Input schema for credit card transaction"""
+
     Time: float = Field(..., description="Time elapsed since first transaction")
     V1: float
     V2: float
@@ -66,36 +69,34 @@ class TransactionInput(BaseModel):
                 "V26": 0.177839798284401,
                 "V27": 0.261145002567677,
                 "V28": -0.143275874698919,
-                "Amount": 0.0
+                "Amount": 0.0,
             }
         }
 
 
 class PredictionResponse(BaseModel):
     """Output schema for prediction"""
+
     prediction: int = Field(..., description="0 = Normal, 1 = Fraud")
     prediction_label: str = Field(..., description="Normal or Fraud")
     fraud_probability: float = Field(..., description="Probability of fraud (0-1)")
     confidence: float = Field(..., description="Model confidence (0-100%)")
-    
+
     class Config:
         schema_extra = {
-            "example": {
-                "prediction": 1,
-                "prediction_label": "Fraud",
-                "fraud_probability": 0.95,
-                "confidence": 95.0
-            }
+            "example": {"prediction": 1, "prediction_label": "Fraud", "fraud_probability": 0.95, "confidence": 95.0}
         }
 
 
 class BatchPredictionRequest(BaseModel):
     """Batch prediction input"""
+
     transactions: List[TransactionInput]
 
 
 class BatchPredictionResponse(BaseModel):
     """Batch prediction output"""
+
     predictions: List[PredictionResponse]
     total_transactions: int
     fraud_count: int
@@ -104,6 +105,7 @@ class BatchPredictionResponse(BaseModel):
 
 class HealthResponse(BaseModel):
     """Health check response"""
+
     status: str
     model_loaded: bool
     model_name: str

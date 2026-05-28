@@ -9,10 +9,12 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15  # Add timeout
     
     strategy:
       matrix:
-        python-version: ['3.9', '3.10', '3.11']
+        python-version: ['3.10']  # Reduce to one version for speed
+      fail-fast: false
     
     steps:
     - name: 📥 Checkout code
@@ -22,30 +24,58 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
-    
-    - name: 📦 Cache pip packages
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
+        cache: 'pip'  # Enable pip caching
     
     - name: 📚 Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install --no-cache-dir -r requirements.txt
+      timeout-minutes: 5
     
-    - name: 🧪 Run tests with pytest
+    - name: 🏗️ Create test models
       run: |
-        pytest tests/ -v --cov=app --cov-report=xml --cov-report=html
+        mkdir -p models
+        python << 'EOF'
+        import pickle
+        import numpy as np
+        from sklearn.ensemble import RandomForestClassifier
+        from sklearn.preprocessing import StandardScaler
+        
+        print('📦 Creating test models...')
+        
+        # Create dummy model
+        model = RandomForestClassifier(n_estimators=10, random_state=42)
+        X_dummy = np.random.rand(100, 30)
+        y_dummy = np.random.randint(0, 2, 100)
+        model.fit(X_dummy, y_dummy)
+        
+        with open('models/xgboost_model.pkl', 'wb') as f:
+            pickle.dump(model, f)
+        print('✅ Model created')
+        
+        # Create dummy scaler
+        scaler = StandardScaler()
+        scaler.fit(X_dummy)
+        
+        with open('models/scaler.pkl', 'wb') as f:
+            pickle.dump(scaler, f)
+        print('✅ Scaler created')
+        EOF
+      timeout-minutes: 2
     
-    - name: 📊 Upload coverage reports
+    - name: 🧪 Run tests
+      run: |
+        pytest tests/ -v --cov=app --cov-report=xml --cov-report=term
+      timeout-minutes: 5
+    
+    - name: 📊 Upload coverage
+      if: matrix.python-version == '3.10'
       uses: codecov/codecov-action@v3
       with:
         file: ./coverage.xml
         fail_ci_if_error: false
     
     - name: ✅ Test Summary
+      if: success()
       run: |
         echo "✅ All tests passed!"

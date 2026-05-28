@@ -1,14 +1,15 @@
-from fastapi import FastAPI, HTTPException, status
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
-from pydantic import BaseModel
-from contextlib import asynccontextmanager
-import uvicorn
 import logging
 import pickle
-import pandas as pd
+from contextlib import asynccontextmanager
 from pathlib import Path
+
+import pandas as pd
+import uvicorn
+from fastapi import FastAPI, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -17,6 +18,7 @@ logger = logging.getLogger(__name__)
 # ==================== LOAD MODEL ====================
 model = None
 scaler = None
+
 
 def load_model():
     """Load model and scaler from disk"""
@@ -34,6 +36,7 @@ def load_model():
         logger.error(f"❌ Error loading model: {str(e)}")
         raise
 
+
 # ==================== LIFESPAN ====================
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -42,11 +45,12 @@ async def lifespan(app: FastAPI):
     logger.info("🚀 Starting up...")
     load_model()
     logger.info("✅ Application ready!")
-    
+
     yield  # Application runs here
-    
+
     # Shutdown
     logger.info("🛑 Shutting down...")
+
 
 # ==================== CREATE APP ====================
 app = FastAPI(
@@ -55,7 +59,7 @@ app = FastAPI(
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
-    lifespan=lifespan  # Use lifespan instead of on_event
+    lifespan=lifespan,  # Use lifespan instead of on_event
 )
 
 # CORS
@@ -66,6 +70,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # ==================== SCHEMAS ====================
 class TransactionInput(BaseModel):
@@ -100,11 +105,13 @@ class TransactionInput(BaseModel):
     V28: float
     Amount: float
 
+
 class PredictionResponse(BaseModel):
     prediction: int
     prediction_label: str
     fraud_probability: float
     confidence: float
+
 
 # ==================== SERVE FRONTEND ====================
 if Path("frontend").exists():
@@ -114,7 +121,9 @@ if Path("frontend").exists():
     async def serve_frontend():
         return FileResponse("frontend/index.html")
 
+
 # ==================== API ENDPOINTS ====================
+
 
 @app.get("/api")
 async def api_root():
@@ -123,16 +132,18 @@ async def api_root():
         "version": "1.0.0",
         "status": "running",
         "model_loaded": model is not None,
-        "docs": "/docs"
+        "docs": "/docs",
     }
+
 
 @app.get("/health")
 async def health_check():
     return {
         "status": "healthy" if model is not None and scaler is not None else "unhealthy",
         "model_loaded": model is not None,
-        "scaler_loaded": scaler is not None
+        "scaler_loaded": scaler is not None,
     }
+
 
 @app.post("/predict", response_model=PredictionResponse)
 async def predict_transaction(transaction: TransactionInput):
@@ -141,7 +152,7 @@ async def predict_transaction(transaction: TransactionInput):
     if model is None or scaler is None:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Model or scaler not loaded. Please restart the server."
+            detail="Model or scaler not loaded. Please restart the server.",
         )
 
     try:
@@ -160,7 +171,7 @@ async def predict_transaction(transaction: TransactionInput):
             "prediction": prediction,
             "prediction_label": "Fraud" if prediction == 1 else "Normal",
             "fraud_probability": round(fraud_probability, 4),
-            "confidence": round(confidence, 2)
+            "confidence": round(confidence, 2),
         }
 
         logger.info(f"✅ Result: {result['prediction_label']} | Prob: {fraud_probability:.4f}")
@@ -168,15 +179,8 @@ async def predict_transaction(transaction: TransactionInput):
 
     except Exception as e:
         logger.error(f"❌ Prediction error: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Prediction failed: {str(e)}"
-        )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Prediction failed: {str(e)}")
+
 
 if __name__ == "__main__":
-    uvicorn.run(
-        "app.main:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True
-    )
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

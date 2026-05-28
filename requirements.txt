@@ -1,20 +1,15 @@
 pandas
 numpy
-scikit-learn
+sklearn
 imbalanced-learn
 mlflow
 dvc
 prefect
-matplotlib
-seaborn
 fastapi
 xgboost
 uvicorn[standard]
 pydantic
 aiofiles
-# ... existing dependencies ...
-
-# Testing
 pytest
 pytest-cov
 httpx

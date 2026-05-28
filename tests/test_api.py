@@ -1,19 +1,17 @@
 """
 API Tests for Credit Card Fraud Detection
 """
-import pytest
-from fastapi.testclient import TestClient
+
 import sys
 from pathlib import Path
+
+from fastapi.testclient import TestClient
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-# ==================== CLIENT SETUP ====================
-# Use TestClient as context manager to trigger lifespan
-from app.main import app
+from app.main import app  # noqa: E402
 
-# ==================== TESTS ====================
 
 def test_read_root():
     """Test API root endpoint"""
@@ -25,6 +23,7 @@ def test_read_root():
         assert "version" in data
         print(f"\n✅ Root: {data}")
 
+
 def test_health_check():
     """Test health endpoint"""
     with TestClient(app) as client:
@@ -34,6 +33,7 @@ def test_health_check():
         assert "status" in data
         assert "model_loaded" in data
         print(f"\n✅ Health: {data}")
+
 
 def test_predict_normal_transaction():
     """Test prediction with normal transaction"""
@@ -67,7 +67,7 @@ def test_predict_normal_transaction():
         "V26": -0.189114843888824,
         "V27": 0.133558376740387,
         "V28": -0.0210530534538215,
-        "Amount": 149.62
+        "Amount": 149.62,
     }
 
     with TestClient(app) as client:
@@ -77,8 +77,7 @@ def test_predict_normal_transaction():
             print(f"\n❌ Status: {response.status_code}")
             print(f"Response: {response.json()}")
 
-        assert response.status_code == 200, \
-            f"Expected 200, got {response.status_code}: {response.json()}"
+        assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.json()}"
 
         data = response.json()
         assert "prediction" in data
@@ -91,10 +90,10 @@ def test_predict_normal_transaction():
         assert 0.0 <= data["fraud_probability"] <= 1.0
         assert 0.0 <= data["confidence"] <= 100.0
 
-        print(f"\n✅ Normal Transaction:")
-        print(f"   Prediction: {data['prediction_label']}")
+        print(f"\n✅ Normal Transaction Prediction: {data['prediction_label']}")
         print(f"   Fraud Prob: {data['fraud_probability']:.4f}")
         print(f"   Confidence: {data['confidence']:.2f}%")
+
 
 def test_predict_fraud_transaction():
     """Test prediction with fraud transaction"""
@@ -128,7 +127,7 @@ def test_predict_fraud_transaction():
         "V26": 0.177839798284401,
         "V27": 0.261145002567677,
         "V28": -0.143275874698919,
-        "Amount": 0.0
+        "Amount": 0.0,
     }
 
     with TestClient(app) as client:
@@ -138,8 +137,7 @@ def test_predict_fraud_transaction():
             print(f"\n❌ Status: {response.status_code}")
             print(f"Response: {response.json()}")
 
-        assert response.status_code == 200, \
-            f"Expected 200, got {response.status_code}: {response.json()}"
+        assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.json()}"
 
         data = response.json()
         assert "prediction" in data
@@ -150,33 +148,56 @@ def test_predict_fraud_transaction():
         assert 0.0 <= data["fraud_probability"] <= 1.0
         assert 0.0 <= data["confidence"] <= 100.0
 
-        print(f"\n✅ Fraud Transaction:")
-        print(f"   Prediction: {data['prediction_label']}")
+        print(f"\n✅ Fraud Transaction Prediction: {data['prediction_label']}")
         print(f"   Fraud Prob: {data['fraud_probability']:.4f}")
         print(f"   Confidence: {data['confidence']:.2f}%")
+
 
 def test_predict_invalid_data():
     """Test prediction with missing fields"""
     invalid_transaction = {
         "Time": 0,
-        "Amount": 100
+        "Amount": 100,
     }
 
     with TestClient(app) as client:
         response = client.post("/predict", json=invalid_transaction)
         assert response.status_code == 422
 
+
 def test_predict_invalid_types():
     """Test prediction with invalid data types"""
     invalid_transaction = {
         "Time": "invalid",
-        "V1": 0, "V2": 0, "V3": 0, "V4": 0, "V5": 0,
-        "V6": 0, "V7": 0, "V8": 0, "V9": 0, "V10": 0,
-        "V11": 0, "V12": 0, "V13": 0, "V14": 0, "V15": 0,
-        "V16": 0, "V17": 0, "V18": 0, "V19": 0, "V20": 0,
-        "V21": 0, "V22": 0, "V23": 0, "V24": 0, "V25": 0,
-        "V26": 0, "V27": 0, "V28": 0,
-        "Amount": 100
+        "V1": 0,
+        "V2": 0,
+        "V3": 0,
+        "V4": 0,
+        "V5": 0,
+        "V6": 0,
+        "V7": 0,
+        "V8": 0,
+        "V9": 0,
+        "V10": 0,
+        "V11": 0,
+        "V12": 0,
+        "V13": 0,
+        "V14": 0,
+        "V15": 0,
+        "V16": 0,
+        "V17": 0,
+        "V18": 0,
+        "V19": 0,
+        "V20": 0,
+        "V21": 0,
+        "V22": 0,
+        "V23": 0,
+        "V24": 0,
+        "V25": 0,
+        "V26": 0,
+        "V27": 0,
+        "V28": 0,
+        "Amount": 100,
     }
 
     with TestClient(app) as client:
