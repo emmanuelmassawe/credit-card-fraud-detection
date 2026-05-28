@@ -107,8 +107,6 @@ This project implements a **production-ready** credit card fraud detection syste
 <img width="1440" height="1440" alt="image" src="https://github.com/user-attachments/assets/e02be1e2-f3f7-4c98-87d9-040a4120fcce" />
 
 
-text
-
 
 ---
 
@@ -126,8 +124,6 @@ docker-compose up -d
 
 # Access application
 open http://localhost:8000
-Option 2: Local Development
-Bash
 
 # Clone repository
 git clone https://github.com/emmanuelmassawe/credit-card-fraud-detection.git
@@ -145,31 +141,17 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 # Access application
 open http://localhost:8000
-Option 3: Kubernetes
-Bash
 
-# Deploy to Kubernetes
-kubectl apply -k k8s/
-
-# Check deployment
-kubectl get all -n fraud-detection
-
-# Access via LoadBalancer
-kubectl get svc -n fraud-detection
 📦 Installation
 Prerequisites
 Python 3.10+
 Docker & Docker Compose
 Git
 Kubernetes (optional)
-DagsHub account (for MLflow tracking)
-Step-by-Step Installation
-Clone Repository
-
-Bash
 
 git clone https://github.com/emmanuelmassawe/credit-card-fraud-detection.git
 cd credit-card-fraud-detection
+
 Setup Virtual Environment
 
 Bash
@@ -277,6 +259,7 @@ kubectl scale deployment fraud-detection-app --replicas=5 -n fraud-detection
 
 # Auto-scaling (HPA configured)
 kubectl get hpa -n fraud-detection
+
 📚 API Documentation
 Endpoints
 Endpoint	Method	Description
@@ -365,9 +348,9 @@ docker-compose logs -f
 
 # Kubernetes logs
 kubectl logs -f -n fraud-detection -l app=fraud-detection
+
 🧪 Development
 Project Structure
-text
 
 credit-card-fraud-detection/
 ├── 📁 app/                     # FastAPI application
@@ -404,6 +387,7 @@ credit-card-fraud-detection/
 ├── ⚙️ params.yaml              # Parameters
 ├── 📦 requirements.txt         # Dependencies
 └── 📖 README.md                # This file
+
 Running Locally
 Bash
 
