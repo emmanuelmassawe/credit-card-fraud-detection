@@ -1,5 +1,9 @@
 // ==================== CONFIG ====================
-const API_URL = window.location.origin;  // locally and also in docker
+const API_URL = window.location.port === "5500"
+    ? "http://localhost:8000"  // Live Server mode
+    : window.location.origin;  // Docker mode
+
+console.log("🌐 API URL:", API_URL);
 
 // ==================== SAMPLE DATA ====================
 const sampleTransactions = {

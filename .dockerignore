@@ -2,18 +2,15 @@
 __pycache__/
 *.pyc
 *.pyo
-*.egg-info/
-dist/
-build/
 venv/
 .venv/
-*.ipynb_checkpoints
+*.egg-info/
 
 # Git
 .git/
 .gitignore
 
-# DVC
+# DVC cache
 .dvc/cache/
 .dvc/tmp/
 
@@ -23,8 +20,6 @@ venv/
 # IDE
 .vscode/
 .idea/
-*.swp
-*.swo
 
 # OS
 .DS_Store
@@ -36,10 +31,11 @@ mlruns/
 # Logs
 *.log
 
-# Documentation
-README.md
-docs/
-
 # Tests
-tests/
-*.pytest_cache
+htmlcov/
+.coverage
+coverage.xml
+.pytest_cache/
+
+# Data (mounted as volumes)
+data/raw/

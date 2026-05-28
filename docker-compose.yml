@@ -1,7 +1,6 @@
 version: '3.8'
 
 services:
-  # FastAPI + Frontend Application
   fraud-detection-app:
     build:
       context: .
@@ -13,8 +12,9 @@ services:
       - ./models:/app/models
       - ./data:/app/data
       - ./reports:/app/reports
-    environment:
-      - PYTHONUNBUFFERED=1
+      - ./frontend:/app/frontend
+    env_file:
+      - .env
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s

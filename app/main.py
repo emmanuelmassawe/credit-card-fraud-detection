@@ -1,15 +1,15 @@
-import logging
-import pickle
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-import pandas as pd
-import uvicorn
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+import uvicorn
+import logging
+import pickle
+import pandas as pd
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -41,14 +41,10 @@ def load_model():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Modern FastAPI lifespan event handler"""
-    # Startup
     logger.info("🚀 Starting up...")
     load_model()
     logger.info("✅ Application ready!")
-
-    yield  # Application runs here
-
-    # Shutdown
+    yield
     logger.info("🛑 Shutting down...")
 
 
@@ -59,7 +55,7 @@ app = FastAPI(
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
-    lifespan=lifespan,  # Use lifespan instead of on_event
+    lifespan=lifespan,
 )
 
 # CORS
@@ -114,17 +110,18 @@ class PredictionResponse(BaseModel):
 
 
 # ==================== SERVE FRONTEND ====================
-if Path("frontend").exists():
-    app.mount("/static", StaticFiles(directory="frontend"), name="static")
+# CORRECT - mounting frontend/static as /static
+if Path("frontend/static").exists():
+    app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
 
+# Also need to mount root for index.html
+if Path("frontend").exists():
     @app.get("/", include_in_schema=False)
     async def serve_frontend():
         return FileResponse("frontend/index.html")
 
 
 # ==================== API ENDPOINTS ====================
-
-
 @app.get("/api")
 async def api_root():
     return {
@@ -148,11 +145,10 @@ async def health_check():
 @app.post("/predict", response_model=PredictionResponse)
 async def predict_transaction(transaction: TransactionInput):
     """Predict if a credit card transaction is fraudulent"""
-
     if model is None or scaler is None:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Model or scaler not loaded. Please restart the server.",
+            detail="Model or scaler not loaded.",
         )
 
     try:
@@ -165,7 +161,11 @@ async def predict_transaction(transaction: TransactionInput):
         prediction = int(model.predict(scaled_data)[0])
         probabilities = model.predict_proba(scaled_data)[0]
         fraud_probability = float(probabilities[1])
-        confidence = fraud_probability * 100 if prediction == 1 else (1 - fraud_probability) * 100
+        confidence = (
+            fraud_probability * 100
+            if prediction == 1
+            else (1 - fraud_probability) * 100
+        )
 
         result = {
             "prediction": prediction,
@@ -179,7 +179,10 @@ async def predict_transaction(transaction: TransactionInput):
 
     except Exception as e:
         logger.error(f"❌ Prediction error: {str(e)}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Prediction failed: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Prediction failed: {str(e)}",
+        )
 
 
 if __name__ == "__main__":
