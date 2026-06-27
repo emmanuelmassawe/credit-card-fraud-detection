@@ -14,9 +14,7 @@ env/
 data/raw/*
 data/processed/*
 
-# Models
-*.pkl
-*.joblib
+
 
 # Environment variables
 .env
