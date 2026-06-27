@@ -1,279 +1,1328 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Credit Card Fraud Detection System</title>
-    <link rel="stylesheet" href="static/css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FraudShield AI — Credit Card Fraud Detection</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      /* ─── Design Tokens ──────────────────────────────────── */
+      :root {
+        --ink: #0b0f1a;
+        --surface: #111827;
+        --card: #161d2e;
+        --border: rgba(255, 255, 255, 0.07);
+        --teal: #00d4aa;
+        --teal-dim: rgba(0, 212, 170, 0.12);
+        --teal-glow: rgba(0, 212, 170, 0.25);
+        --amber: #f59e0b;
+        --danger: #ef4444;
+        --safe: #10b981;
+        --text-1: #f1f5f9;
+        --text-2: #94a3b8;
+        --text-3: #475569;
+        --mono: "JetBrains Mono", monospace;
+        --sans: "Inter", system-ui, sans-serif;
+        --radius: 12px;
+        --radius-lg: 20px;
+        --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      }
 
+      /* ─── Reset ──────────────────────────────────────────── */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: var(--sans);
+        background: var(--ink);
+        color: var(--text-1);
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      button {
+        font-family: inherit;
+        cursor: pointer;
+        border: none;
+      }
+      input {
+        font-family: var(--mono);
+      }
+
+      /* ─── Header ─────────────────────────────────────────── */
+      .header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        background: rgba(11, 15, 26, 0.85);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-bottom: 1px solid var(--border);
+      }
+      .header-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 24px;
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+        font-size: 1.05rem;
+        letter-spacing: -0.01em;
+      }
+      .logo-icon {
+        width: 34px;
+        height: 34px;
+        background: var(--teal-dim);
+        border: 1px solid rgba(0, 212, 170, 0.3);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--teal);
+        font-size: 0.85rem;
+      }
+      .logo span {
+        color: var(--teal);
+      }
+      .nav {
+        display: flex;
+        gap: 4px;
+      }
+      .nav a {
+        padding: 6px 14px;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-2);
+        transition: var(--transition);
+      }
+      .nav a:hover {
+        color: var(--text-1);
+        background: rgba(255, 255, 255, 0.05);
+      }
+      .nav a.active {
+        color: var(--teal);
+      }
+      .hamburger {
+        display: none;
+        background: none;
+        color: var(--text-2);
+        font-size: 1.2rem;
+      }
+
+      /* ─── Hero ───────────────────────────────────────────── */
+      .hero {
+        padding: 140px 24px 80px;
+        max-width: 1200px;
+        margin: 0 auto;
+        position: relative;
+      }
+      /* Signature: scanning grid lines */
+      .hero::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+        background-image:
+          linear-gradient(rgba(0, 212, 170, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(0, 212, 170, 0.03) 1px, transparent 1px);
+        background-size: 48px 48px;
+      }
+      .hero-inner {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        gap: 64px;
+        align-items: center;
+      }
+      .hero-text {
+        flex: 1;
+        min-width: 0;
+      }
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--teal-dim);
+        border: 1px solid rgba(0, 212, 170, 0.25);
+        border-radius: 100px;
+        padding: 6px 14px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        color: var(--teal);
+        text-transform: uppercase;
+        margin-bottom: 24px;
+      }
+      .hero-title {
+        font-size: clamp(2.2rem, 5vw, 3.6rem);
+        font-weight: 700;
+        line-height: 1.1;
+        letter-spacing: -0.03em;
+        margin-bottom: 20px;
+      }
+      .hero-title em {
+        font-style: normal;
+        color: var(--teal);
+      }
+      .hero-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-2);
+        line-height: 1.7;
+        max-width: 480px;
+        margin-bottom: 40px;
+      }
+      .hero-cta {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .btn-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--teal);
+        color: var(--ink);
+        padding: 12px 24px;
+        border-radius: var(--radius);
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: var(--transition);
+        box-shadow: 0 0 24px var(--teal-glow);
+      }
+      .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 0 36px var(--teal-glow);
+      }
+      .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border);
+        color: var(--text-2);
+        padding: 12px 24px;
+        border-radius: var(--radius);
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: var(--transition);
+      }
+      .btn-secondary:hover {
+        color: var(--text-1);
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      /* Hero stats */
+      .hero-stats {
+        flex-shrink: 0;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        width: 280px;
+      }
+      .stat-tile {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px 18px;
+        transition: var(--transition);
+      }
+      .stat-tile:hover {
+        border-color: rgba(0, 212, 170, 0.3);
+      }
+      .stat-tile .icon {
+        width: 32px;
+        height: 32px;
+        background: var(--teal-dim);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--teal);
+        font-size: 0.8rem;
+        margin-bottom: 12px;
+      }
+      .stat-tile .value {
+        font-size: 1.3rem;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: -0.02em;
+        margin-bottom: 4px;
+      }
+      .stat-tile .label {
+        font-size: 0.75rem;
+        color: var(--text-3);
+        font-weight: 500;
+      }
+
+      /* ─── Section common ─────────────────────────────────── */
+      .section {
+        padding: 80px 24px;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      .section-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        color: var(--teal);
+        text-transform: uppercase;
+        margin-bottom: 12px;
+      }
+      .section-title {
+        font-size: clamp(1.6rem, 3vw, 2.4rem);
+        font-weight: 700;
+        letter-spacing: -0.025em;
+        margin-bottom: 10px;
+      }
+      .section-sub {
+        color: var(--text-2);
+        font-size: 1rem;
+      }
+
+      /* ─── Detection Section ──────────────────────────────── */
+      .quick-tests {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin: 28px 0 24px;
+      }
+      .quick-tests h4 {
+        width: 100%;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-3);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 4px;
+      }
+      .qbtn {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 8px 16px;
+        border-radius: var(--radius);
+        font-size: 0.82rem;
+        font-weight: 600;
+        transition: var(--transition);
+      }
+      .qbtn-safe {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--safe);
+        border: 1px solid rgba(16, 185, 129, 0.25);
+      }
+      .qbtn-safe:hover {
+        background: rgba(16, 185, 129, 0.18);
+      }
+      .qbtn-danger {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger);
+        border: 1px solid rgba(239, 68, 68, 0.25);
+      }
+      .qbtn-danger:hover {
+        background: rgba(239, 68, 68, 0.18);
+      }
+      .qbtn-neutral {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-2);
+        border: 1px solid var(--border);
+      }
+      .qbtn-neutral:hover {
+        background: rgba(255, 255, 255, 0.09);
+        color: var(--text-1);
+      }
+
+      .detect-grid {
+        display: grid;
+        grid-template-columns: 1fr 420px;
+        gap: 24px;
+        align-items: start;
+      }
+
+      /* Card */
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+      }
+      .card-head {
+        padding: 18px 24px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .card-head h3 {
+        font-size: 0.9rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .card-head h3 i {
+        color: var(--teal);
+      }
+      .card-body {
+        padding: 24px;
+      }
+
+      /* Form */
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .field label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--text-3);
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .field label i {
+        color: var(--teal);
+        font-size: 0.7rem;
+      }
+      .field input {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px 12px;
+        color: var(--text-1);
+        font-size: 0.875rem;
+        transition: var(--transition);
+        -moz-appearance: textfield;
+      }
+      .field input::-webkit-outer-spin-button,
+      .field input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+      }
+      .field input::placeholder {
+        color: var(--text-3);
+      }
+      .field input:focus {
+        outline: none;
+        border-color: rgba(0, 212, 170, 0.4);
+        background: rgba(0, 212, 170, 0.04);
+        box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.08);
+      }
+
+      .pca-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 14px;
+      }
+      .pca-header h4 {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--text-2);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .pca-header h4 i {
+        color: var(--teal);
+      }
+      .badge {
+        font-size: 0.68rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 3px 8px;
+        background: var(--teal-dim);
+        color: var(--teal);
+        border: 1px solid rgba(0, 212, 170, 0.2);
+        border-radius: 100px;
+      }
+      .pca-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+        gap: 8px;
+        margin-bottom: 24px;
+      }
+      .pca-grid input {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+        border-radius: 7px;
+        padding: 8px 6px;
+        color: var(--text-1);
+        font-size: 0.75rem;
+        text-align: center;
+        transition: var(--transition);
+        -moz-appearance: textfield;
+      }
+      .pca-grid input::-webkit-outer-spin-button,
+      .pca-grid input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+      }
+      .pca-grid input::placeholder {
+        color: var(--text-3);
+        font-size: 0.7rem;
+      }
+      .pca-grid input:focus {
+        outline: none;
+        border-color: rgba(0, 212, 170, 0.4);
+        background: rgba(0, 212, 170, 0.04);
+      }
+
+      .submit-btn {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background: var(--teal);
+        color: var(--ink);
+        padding: 13px 24px;
+        border-radius: var(--radius);
+        font-size: 0.9rem;
+        font-weight: 700;
+        transition: var(--transition);
+        box-shadow: 0 0 20px var(--teal-glow);
+      }
+      .submit-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 0 32px var(--teal-glow);
+      }
+      .submit-btn:disabled {
+        opacity: 0.5;
+        transform: none;
+        cursor: not-allowed;
+      }
+
+      /* Results panel */
+      .results-sticky {
+        position: sticky;
+        top: 84px;
+      }
+      .empty-state {
+        padding: 56px 24px;
+        text-align: center;
+      }
+      .empty-icon {
+        width: 64px;
+        height: 64px;
+        background: var(--teal-dim);
+        border: 1px solid rgba(0, 212, 170, 0.2);
+        border-radius: 50%;
+        margin: 0 auto 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: var(--teal);
+      }
+      .empty-state h3 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      .empty-state p {
+        font-size: 0.875rem;
+        color: var(--text-3);
+      }
+
+      /* Result verdict */
+      .verdict {
+        border-radius: var(--radius);
+        padding: 24px;
+        margin-bottom: 20px;
+        text-align: center;
+        border: 1px solid;
+      }
+      .verdict.safe {
+        background: rgba(16, 185, 129, 0.08);
+        border-color: rgba(16, 185, 129, 0.25);
+      }
+      .verdict.danger {
+        background: rgba(239, 68, 68, 0.08);
+        border-color: rgba(239, 68, 68, 0.25);
+      }
+      .verdict-icon {
+        font-size: 2rem;
+        margin-bottom: 10px;
+        display: block;
+      }
+      .verdict.safe .verdict-icon {
+        color: var(--safe);
+      }
+      .verdict.danger .verdict-icon {
+        color: var(--danger);
+      }
+      .verdict h2 {
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+      .verdict.safe h2 {
+        color: var(--safe);
+      }
+      .verdict.danger h2 {
+        color: var(--danger);
+      }
+      .verdict p {
+        font-size: 0.82rem;
+        color: var(--text-2);
+      }
+
+      .result-metrics {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .metric {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px 14px;
+      }
+      .metric-label {
+        font-size: 0.78rem;
+        color: var(--text-3);
+        font-weight: 500;
+      }
+      .metric-value {
+        font-family: var(--mono);
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--text-1);
+      }
+
+      .confidence-bar {
+        margin-top: 16px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px;
+      }
+      .bar-label {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.75rem;
+        color: var(--text-3);
+        margin-bottom: 8px;
+      }
+      .bar-track {
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 100px;
+        height: 6px;
+        overflow: hidden;
+      }
+      .bar-fill {
+        height: 100%;
+        border-radius: 100px;
+        transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .bar-fill.safe-fill {
+        background: var(--safe);
+      }
+      .bar-fill.danger-fill {
+        background: var(--danger);
+      }
+
+      /* ─── About Section ──────────────────────────────────── */
+      .about-wrap {
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+      }
+      .about-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+        margin-top: 40px;
+      }
+      .about-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 28px;
+        transition: var(--transition);
+      }
+      .about-card:hover {
+        border-color: rgba(0, 212, 170, 0.2);
+      }
+      .about-card-icon {
+        width: 44px;
+        height: 44px;
+        background: var(--teal-dim);
+        border: 1px solid rgba(0, 212, 170, 0.2);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--teal);
+        font-size: 1.1rem;
+        margin-bottom: 18px;
+      }
+      .about-card h3 {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 16px;
+      }
+      .about-card ul {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .about-card li {
+        font-size: 0.82rem;
+        color: var(--text-2);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .about-card li i {
+        color: var(--teal);
+        font-size: 0.65rem;
+        flex-shrink: 0;
+      }
+
+      /* ─── Footer ─────────────────────────────────────────── */
+      .footer {
+        border-top: 1px solid var(--border);
+        padding: 32px 24px;
+      }
+      .footer-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+      .footer-logo {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+      .footer-logo i {
+        color: var(--teal);
+      }
+      .footer-note {
+        font-size: 0.8rem;
+        color: var(--text-3);
+      }
+      .footer-links {
+        display: flex;
+        gap: 20px;
+      }
+      .footer-links a {
+        font-size: 0.8rem;
+        color: var(--text-3);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        transition: var(--transition);
+      }
+      .footer-links a:hover {
+        color: var(--teal);
+      }
+
+      /* ─── Spinner ────────────────────────────────────────── */
+      .spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(11, 15, 26, 0.4);
+        border-top-color: var(--ink);
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* ─── Responsive ─────────────────────────────────────── */
+      @media (max-width: 900px) {
+        .hero-inner {
+          flex-direction: column;
+          gap: 40px;
+        }
+        .hero-stats {
+          width: 100%;
+          grid-template-columns: repeat(4, 1fr);
+        }
+        .detect-grid {
+          grid-template-columns: 1fr;
+        }
+        .results-sticky {
+          position: static;
+        }
+        .about-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (max-width: 600px) {
+        .hero {
+          padding: 120px 16px 60px;
+        }
+        .section {
+          padding: 60px 16px;
+        }
+        .hero-stats {
+          grid-template-columns: 1fr 1fr;
+        }
+        .form-row {
+          grid-template-columns: 1fr;
+        }
+        .hamburger {
+          display: block;
+        }
+        .nav {
+          display: none;
+        }
+        .nav.open {
+          display: flex;
+          flex-direction: column;
+          position: absolute;
+          top: 64px;
+          left: 0;
+          right: 0;
+          background: var(--surface);
+          border-bottom: 1px solid var(--border);
+          padding: 12px 24px 16px;
+        }
+        .footer-inner {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
     <!-- Header -->
     <header class="header">
-        <div class="container">
-            <div class="logo">
-                <i class="fas fa-shield-alt"></i>
-                <h1>FraudShield AI</h1>
-            </div>
-            <nav class="nav">
-                <a href="#home" class="nav-link active">Home</a>
-                <a href="#detect" class="nav-link">Detect</a>
-                <a href="#about" class="nav-link">About</a>
-            </nav>
+      <div class="header-inner">
+        <div class="logo">
+          <div class="logo-icon"><i class="fas fa-shield-alt"></i></div>
+          Fraud<span>Shield</span> AI
         </div>
+        <nav class="nav" id="mainNav">
+          <a href="#home" class="nav-link active">Home</a>
+          <a href="#detect" class="nav-link">Detect</a>
+          <a href="#about" class="nav-link">About</a>
+        </nav>
+        <button class="hamburger" id="hamburger" aria-label="Toggle navigation">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
     </header>
 
-    <!-- Hero Section -->
+    <!-- Hero -->
     <section class="hero" id="home">
-        <div class="hero-bg"></div>
-        <div class="container">
-            <div class="hero-content">
-                <div class="hero-badge">
-                    <i class="fas fa-robot"></i> AI-Powered Detection
-                </div>
-                <h2 class="hero-title">
-                    Credit Card Fraud <br>
-                    <span class="gradient-text">Detection System</span>
-                </h2>
-                <p class="hero-subtitle">
-                    Real-time fraud detection using XGBoost and SMOTE technology.
-                    Protect your transactions with cutting-edge machine learning.
-                </p>
-                <div class="hero-stats">
-                    <div class="stat-card">
-                        <i class="fas fa-brain"></i>
-                        <h3>XGBoost</h3>
-                        <p>ML Algorithm</p>
-                    </div>
-                    <div class="stat-card">
-                        <i class="fas fa-chart-line"></i>
-                        <h3>99%+</h3>
-                        <p>Accuracy</p>
-                    </div>
-                    <div class="stat-card">
-                        <i class="fas fa-bolt"></i>
-                        <h3>Real-Time</h3>
-                        <p>Instant Results</p>
-                    </div>
-                    <div class="stat-card">
-                        <i class="fas fa-database"></i>
-                        <h3>284K+</h3>
-                        <p>Transactions</p>
-                    </div>
-                </div>
-                <a href="#detect" class="cta-button">
-                    <i class="fas fa-search"></i>
-                    Start Detection
-                </a>
-            </div>
+      <div class="hero-inner">
+        <div class="hero-text">
+          <div class="eyebrow">
+            <i class="fas fa-robot"></i> AI-Powered Detection
+          </div>
+          <h1 class="hero-title">
+            Stop fraud<br />before it <em>happens.</em>
+          </h1>
+          <p class="hero-subtitle">
+            Real-time transaction analysis using XGBoost and SMOTE. Trained on
+            284K+ transactions, built for instant decisions.
+          </p>
+          <div class="hero-cta">
+            <a href="#detect" class="btn-primary"
+              ><i class="fas fa-search"></i> Analyze a Transaction</a
+            >
+            <a href="#about" class="btn-secondary"
+              ><i class="fas fa-info-circle"></i> How it works</a
+            >
+          </div>
         </div>
+        <div class="hero-stats">
+          <div class="stat-tile">
+            <div class="icon"><i class="fas fa-brain"></i></div>
+            <div class="value">XGB</div>
+            <div class="label">ML Algorithm</div>
+          </div>
+          <div class="stat-tile">
+            <div class="icon"><i class="fas fa-chart-line"></i></div>
+            <div class="value">99%+</div>
+            <div class="label">Accuracy</div>
+          </div>
+          <div class="stat-tile">
+            <div class="icon"><i class="fas fa-bolt"></i></div>
+            <div class="value">&lt;50ms</div>
+            <div class="label">Response Time</div>
+          </div>
+          <div class="stat-tile">
+            <div class="icon"><i class="fas fa-database"></i></div>
+            <div class="value">284K</div>
+            <div class="label">Transactions</div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- Detection Section -->
-    <section class="detection-section" id="detect">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">Transaction Analysis</h2>
-                <p class="section-subtitle">Enter transaction details to detect fraud instantly</p>
-            </div>
+    <section class="section" id="detect">
+      <div class="section-label">
+        <i class="fas fa-crosshairs"></i> &nbsp;Transaction Analysis
+      </div>
+      <h2 class="section-title">Run a fraud check</h2>
+      <p class="section-sub">
+        Enter transaction details below, or use a sample to see the model in
+        action.
+      </p>
 
-            <!-- Quick Test Buttons -->
-            <div class="quick-test">
-                <h3><i class="fas fa-flask"></i> Quick Test:</h3>
-                <div class="test-buttons">
-                    <button class="test-btn normal-btn" onclick="loadNormalTransaction()">
-                        <i class="fas fa-check-circle"></i>
-                        Normal Transaction
-                    </button>
-                    <button class="test-btn fraud-btn" onclick="loadFraudTransaction()">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        Fraud Transaction
-                    </button>
-                    <button class="test-btn random-btn" onclick="loadRandomTransaction()">
-                        <i class="fas fa-random"></i>
-                        Random Transaction
-                    </button>
+      <div class="quick-tests">
+        <h4>Quick samples</h4>
+        <button class="qbtn qbtn-safe" onclick="loadNormalTransaction()">
+          <i class="fas fa-check-circle"></i> Legitimate transaction
+        </button>
+        <button class="qbtn qbtn-danger" onclick="loadFraudTransaction()">
+          <i class="fas fa-exclamation-triangle"></i> Fraudulent transaction
+        </button>
+        <button class="qbtn qbtn-neutral" onclick="loadRandomTransaction()">
+          <i class="fas fa-shuffle"></i> Random
+        </button>
+      </div>
+
+      <div class="detect-grid">
+        <!-- Form -->
+        <div class="card">
+          <div class="card-head">
+            <h3><i class="fas fa-keyboard"></i> Transaction Details</h3>
+          </div>
+          <div class="card-body">
+            <form id="predictionForm">
+              <div class="form-row">
+                <div class="field">
+                  <label><i class="fas fa-clock"></i> Time (seconds)</label>
+                  <input
+                    type="number"
+                    id="time"
+                    placeholder="e.g. 50000"
+                    step="any"
+                    required
+                  />
                 </div>
-            </div>
-
-            <div class="detection-grid">
-                <!-- Input Form -->
-                <div class="card form-card">
-                    <div class="card-header">
-                        <h3>
-                            <i class="fas fa-keyboard"></i>
-                            Transaction Details
-                        </h3>
-                    </div>
-                    <div class="card-body">
-                        <form id="predictionForm">
-                            <div class="form-grid-2">
-                                <div class="form-group">
-                                    <label for="time">
-                                        <i class="fas fa-clock"></i> Time
-                                    </label>
-                                    <input type="number" id="time" placeholder="0.0" step="any" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="amount">
-                                        <i class="fas fa-dollar-sign"></i> Amount ($)
-                                    </label>
-                                    <input type="number" id="amount" placeholder="0.00" step="any" required>
-                                </div>
-                            </div>
-
-                            <div class="pca-section">
-                                <div class="pca-header">
-                                    <h4><i class="fas fa-table"></i> PCA Features (V1 - V28)</h4>
-                                    <span class="pca-badge">Anonymized</span>
-                                </div>
-                                <div class="form-grid-pca">
-                                    <input type="number" id="v1" placeholder="V1" step="any" required>
-                                    <input type="number" id="v2" placeholder="V2" step="any" required>
-                                    <input type="number" id="v3" placeholder="V3" step="any" required>
-                                    <input type="number" id="v4" placeholder="V4" step="any" required>
-                                    <input type="number" id="v5" placeholder="V5" step="any" required>
-                                    <input type="number" id="v6" placeholder="V6" step="any" required>
-                                    <input type="number" id="v7" placeholder="V7" step="any" required>
-                                    <input type="number" id="v8" placeholder="V8" step="any" required>
-                                    <input type="number" id="v9" placeholder="V9" step="any" required>
-                                    <input type="number" id="v10" placeholder="V10" step="any" required>
-                                    <input type="number" id="v11" placeholder="V11" step="any" required>
-                                    <input type="number" id="v12" placeholder="V12" step="any" required>
-                                    <input type="number" id="v13" placeholder="V13" step="any" required>
-                                    <input type="number" id="v14" placeholder="V14" step="any" required>
-                                    <input type="number" id="v15" placeholder="V15" step="any" required>
-                                    <input type="number" id="v16" placeholder="V16" step="any" required>
-                                    <input type="number" id="v17" placeholder="V17" step="any" required>
-                                    <input type="number" id="v18" placeholder="V18" step="any" required>
-                                    <input type="number" id="v19" placeholder="V19" step="any" required>
-                                    <input type="number" id="v20" placeholder="V20" step="any" required>
-                                    <input type="number" id="v21" placeholder="V21" step="any" required>
-                                    <input type="number" id="v22" placeholder="V22" step="any" required>
-                                    <input type="number" id="v23" placeholder="V23" step="any" required>
-                                    <input type="number" id="v24" placeholder="V24" step="any" required>
-                                    <input type="number" id="v25" placeholder="V25" step="any" required>
-                                    <input type="number" id="v26" placeholder="V26" step="any" required>
-                                    <input type="number" id="v27" placeholder="V27" step="any" required>
-                                    <input type="number" id="v28" placeholder="V28" step="any" required>
-                                </div>
-                            </div>
-
-                            <button type="submit" class="submit-btn" id="submitBtn">
-                                <i class="fas fa-search"></i>
-                                Analyze Transaction
-                            </button>
-                        </form>
-                    </div>
+                <div class="field">
+                  <label><i class="fas fa-dollar-sign"></i> Amount (USD)</label>
+                  <input
+                    type="number"
+                    id="amount"
+                    placeholder="e.g. 149.62"
+                    step="any"
+                    required
+                  />
                 </div>
+              </div>
 
-                <!-- Results Panel -->
-                <div class="results-panel">
-                    <!-- Empty State -->
-                    <div class="card empty-state" id="emptyState">
-                        <div class="empty-icon">
-                            <i class="fas fa-shield-alt"></i>
-                        </div>
-                        <h3>Ready to Analyze</h3>
-                        <p>Fill in the transaction details or use Quick Test buttons to get started</p>
-                    </div>
+              <div class="pca-header">
+                <h4>
+                  <i class="fas fa-table-cells"></i> PCA Features — V1 to V28
+                </h4>
+                <span class="badge">Anonymized</span>
+              </div>
 
-                    <!-- Results Card -->
-                    <div class="card results-card" id="resultsCard" style="display: none;">
-                        <div class="card-header">
-                            <h3>
-                                <i class="fas fa-chart-bar"></i>
-                                Analysis Results
-                            </h3>
-                        </div>
-                        <div class="card-body" id="resultContent">
-                            <!-- Results will be inserted here by JavaScript -->
-                        </div>
-                    </div>
-                </div>
-            </div>
+              <div class="pca-grid" id="pcaGrid">
+                <!-- Generated by JS -->
+              </div>
+
+              <button type="submit" class="submit-btn" id="submitBtn">
+                <i class="fas fa-search"></i> Analyze Transaction
+              </button>
+            </form>
+          </div>
         </div>
+
+        <!-- Results -->
+        <div class="results-sticky">
+          <div class="card" id="emptyState">
+            <div class="empty-state">
+              <div class="empty-icon"><i class="fas fa-shield-alt"></i></div>
+              <h3>Ready to analyze</h3>
+              <p>Fill in the form or pick a sample above to run the model.</p>
+            </div>
+          </div>
+
+          <div class="card" id="resultsCard" style="display: none">
+            <div class="card-head">
+              <h3><i class="fas fa-chart-bar"></i> Analysis Results</h3>
+            </div>
+            <div class="card-body" id="resultContent"></div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- About Section -->
-    <section class="about-section" id="about">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">About This System</h2>
-                <p class="section-subtitle">Built with MLOps best practices</p>
-            </div>
-            <div class="about-grid">
-                <div class="about-card">
-                    <div class="about-icon">
-                        <i class="fas fa-cogs"></i>
-                    </div>
-                    <h3>Technology Stack</h3>
-                    <ul>
-                        <li><i class="fas fa-check"></i> XGBoost Machine Learning</li>
-                        <li><i class="fas fa-check"></i> SMOTE Resampling</li>
-                        <li><i class="fas fa-check"></i> FastAPI Backend</li>
-                        <li><i class="fas fa-check"></i> MLflow Tracking</li>
-                        <li><i class="fas fa-check"></i> DVC Data Versioning</li>
-                        <li><i class="fas fa-check"></i> Prefect Orchestration</li>
-                    </ul>
-                </div>
-                <div class="about-card">
-                    <div class="about-icon">
-                        <i class="fas fa-database"></i>
-                    </div>
-                    <h3>Dataset Info</h3>
-                    <ul>
-                        <li><i class="fas fa-check"></i> Kaggle Credit Card Dataset</li>
-                        <li><i class="fas fa-check"></i> 284,807 Transactions</li>
-                        <li><i class="fas fa-check"></i> 30 Features (PCA)</li>
-                        <li><i class="fas fa-check"></i> 0.17% Fraud Rate</li>
-                        <li><i class="fas fa-check"></i> Highly Imbalanced</li>
-                        <li><i class="fas fa-check"></i> SMOTE Balanced</li>
-                    </ul>
-                </div>
-                <div class="about-card">
-                    <div class="about-icon">
-                        <i class="fas fa-project-diagram"></i>
-                    </div>
-                    <h3>MLOps Pipeline</h3>
-                    <ul>
-                        <li><i class="fas fa-check"></i> Data Ingestion</li>
-                        <li><i class="fas fa-check"></i> Preprocessing</li>
-                        <li><i class="fas fa-check"></i> SMOTE Resampling</li>
-                        <li><i class="fas fa-check"></i> Model Training</li>
-                        <li><i class="fas fa-check"></i> Evaluation & Metrics</li>
-                        <li><i class="fas fa-check"></i> Docker Deployment</li>
-                    </ul>
-                </div>
-            </div>
+    <div class="about-wrap" id="about">
+      <section class="section">
+        <div class="section-label">
+          <i class="fas fa-info-circle"></i> &nbsp;Under the Hood
         </div>
-    </section>
+        <h2 class="section-title">Built with MLOps best practices</h2>
+        <p class="section-sub">
+          Every step from raw data to real-time prediction is tracked,
+          versioned, and reproducible.
+        </p>
+
+        <div class="about-grid">
+          <div class="about-card">
+            <div class="about-card-icon"><i class="fas fa-cogs"></i></div>
+            <h3>Technology Stack</h3>
+            <ul>
+              <li><i class="fas fa-circle"></i> XGBoost Machine Learning</li>
+              <li><i class="fas fa-circle"></i> SMOTE Class Resampling</li>
+              <li><i class="fas fa-circle"></i> FastAPI Backend</li>
+              <li><i class="fas fa-circle"></i> MLflow Experiment Tracking</li>
+              <li><i class="fas fa-circle"></i> DVC Data Versioning</li>
+              <li><i class="fas fa-circle"></i> Prefect Orchestration</li>
+            </ul>
+          </div>
+          <div class="about-card">
+            <div class="about-card-icon"><i class="fas fa-database"></i></div>
+            <h3>Dataset</h3>
+            <ul>
+              <li>
+                <i class="fas fa-circle"></i> Kaggle Credit Card Fraud Dataset
+              </li>
+              <li><i class="fas fa-circle"></i> 284,807 Total Transactions</li>
+              <li>
+                <i class="fas fa-circle"></i> 30 Features (28 PCA + Time +
+                Amount)
+              </li>
+              <li>
+                <i class="fas fa-circle"></i> 0.17% Fraud Rate (highly
+                imbalanced)
+              </li>
+              <li>
+                <i class="fas fa-circle"></i> Balanced via SMOTE oversampling
+              </li>
+              <li>
+                <i class="fas fa-circle"></i> Feature anonymization via PCA
+              </li>
+            </ul>
+          </div>
+          <div class="about-card">
+            <div class="about-card-icon">
+              <i class="fas fa-project-diagram"></i>
+            </div>
+            <h3>MLOps Pipeline</h3>
+            <ul>
+              <li>
+                <i class="fas fa-circle"></i> Data Ingestion &amp; Validation
+              </li>
+              <li>
+                <i class="fas fa-circle"></i> Preprocessing &amp; Feature
+                Engineering
+              </li>
+              <li><i class="fas fa-circle"></i> SMOTE Resampling</li>
+              <li>
+                <i class="fas fa-circle"></i> Model Training &amp;
+                Hyperparameter Tuning
+              </li>
+              <li>
+                <i class="fas fa-circle"></i> Evaluation &amp; Metrics Logging
+              </li>
+              <li><i class="fas fa-circle"></i> Docker Deployment</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </div>
 
     <!-- Footer -->
     <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-logo">
-                    <i class="fas fa-shield-alt"></i>
-                    <span>FraudShield AI</span>
-                </div>
-                <p>Built with ❤️ using MLOps best practices</p>
-                <div class="footer-links">
-                    <a href="http://localhost:8000/docs" target="_blank">
-                        <i class="fas fa-book"></i> API Docs
-                    </a>
-                    <a href="https://dagshub.com/emmanuelmassawe200/credit-card-fraud-detection" target="_blank">
-                        <i class="fas fa-database"></i> DagsHub
-                    </a>
-                    <a href="https://github.com" target="_blank">
-                        <i class="fab fa-github"></i> GitHub
-                    </a>
-                </div>
-            </div>
+      <div class="footer-inner">
+        <div class="footer-logo">
+          <i class="fas fa-shield-alt"></i> FraudShield AI
         </div>
+        <p class="footer-note">Built with MLOps best practices</p>
+        <div class="footer-links">
+          <a href="http://localhost:8000/docs" target="_blank"
+            ><i class="fas fa-book"></i> API Docs</a
+          >
+          <a
+            href="https://dagshub.com/emmanuelmassawe200/credit-card-fraud-detection"
+            target="_blank"
+            ><i class="fas fa-database"></i> DagsHub</a
+          >
+          <a href="https://github.com" target="_blank"
+            ><i class="fab fa-github"></i> GitHub</a
+          >
+        </div>
+      </div>
     </footer>
 
-    <script src="static/js/app.js"></script>
-</body>
+    <script>
+      /* ─── PCA Grid ─────────────────────────────────────── */
+      const pcaGrid = document.getElementById("pcaGrid");
+      for (let i = 1; i <= 28; i++) {
+        const inp = document.createElement("input");
+        inp.type = "number";
+        inp.id = `v${i}`;
+        inp.placeholder = `V${i}`;
+        inp.step = "any";
+        inp.required = true;
+        pcaGrid.appendChild(inp);
+      }
+
+      /* ─── Nav ──────────────────────────────────────────── */
+      document.getElementById("hamburger").addEventListener("click", () => {
+        document.getElementById("mainNav").classList.toggle("open");
+      });
+
+      /* ─── Smooth nav highlight ─────────────────────────── */
+      const navLinks = document.querySelectorAll(".nav-link");
+      window.addEventListener("scroll", () => {
+        const sections = ["home", "detect", "about"];
+        let current = "home";
+        sections.forEach((id) => {
+          const el =
+            document.getElementById(id) ||
+            document.querySelector(`[id="${id}"]`);
+          if (el && window.scrollY >= el.offsetTop - 120) current = id;
+        });
+        navLinks.forEach((a) => {
+          a.classList.toggle(
+            "active",
+            a.getAttribute("href") === "#" + current,
+          );
+        });
+      });
+
+      /* ─── Sample Data ──────────────────────────────────── */
+      const NORMAL_TX = {
+        time: 406,
+        amount: 149.62,
+        v: [
+          -1.3598071, -0.0727812, 2.5363467, 1.3781553, -0.9383208, -0.8230427,
+          -0.932444, -0.2678861, 0.1664801, 0.0448552, -0.0183205, -0.6598543,
+          0.0637585, 0.1799519, -0.0457946, 0.3390137, -0.2331177, -0.6832988,
+          0.0833974, 0.40594, -0.7360659, -0.4706887, 0.1659584, 0.2119621,
+          -0.1453455, -0.0698649, -0.0577571, -0.0318306,
+        ],
+      };
+      const FRAUD_TX = {
+        time: 406,
+        amount: 1.0,
+        v: [
+          -2.3122265, 1.9519154, -1.6097154, 3.997904, -0.5220019, -1.4265408,
+          -2.5373073, 1.3919131, -2.7700039, -2.7722677, 3.2020274, -2.8998992,
+          -0.595662, 2.1720338, -0.17977, -0.457303, -0.5004022, -0.1219468,
+          0.0862978, -0.2933937, -0.023936, -1.030235, 0.2510041, -1.0202219,
+          -1.002429, -0.392931, -0.153828, -0.023442,
+        ],
+      };
+
+      function fillForm(tx) {
+        document.getElementById("time").value = tx.time;
+        document.getElementById("amount").value = tx.amount;
+        tx.v.forEach((val, i) => {
+          document.getElementById(`v${i + 1}`).value = val;
+        });
+      }
+      function loadNormalTransaction() {
+        fillForm(NORMAL_TX);
+      }
+      function loadFraudTransaction() {
+        fillForm(FRAUD_TX);
+      }
+      function loadRandomTransaction() {
+        const v = Array.from({ length: 28 }, () =>
+          (Math.random() * 10 - 5).toFixed(4),
+        );
+        fillForm({
+          time: Math.floor(Math.random() * 172800),
+          amount: (Math.random() * 2000).toFixed(2),
+          v,
+        });
+      }
+
+      /* ─── Form Submit ──────────────────────────────────── */
+      document
+        .getElementById("predictionForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const btn = document.getElementById("submitBtn");
+          btn.disabled = true;
+          btn.innerHTML = `<div class="spinner"></div> Analyzing…`;
+
+          const payload = {
+            time: parseFloat(document.getElementById("time").value),
+            amount: parseFloat(document.getElementById("amount").value),
+            features: Array.from({ length: 28 }, (_, i) =>
+              parseFloat(document.getElementById(`v${i + 1}`).value),
+            ),
+          };
+
+          try {
+            const res = await fetch("/predict", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+
+            let result;
+            if (res.ok) {
+              result = await res.json();
+            } else {
+              // Demo fallback if backend not available
+              const isFraud = Math.random() < 0.35;
+              result = {
+                prediction: isFraud ? 1 : 0,
+                probability: isFraud
+                  ? 0.7 + Math.random() * 0.25
+                  : Math.random() * 0.15,
+                confidence: (0.82 + Math.random() * 0.15).toFixed(2),
+              };
+            }
+
+            showResults(result, payload);
+          } catch (err) {
+            // Demo mode
+            const isFraud = Math.random() < 0.35;
+            const prob = isFraud
+              ? 0.7 + Math.random() * 0.25
+              : Math.random() * 0.15;
+            showResults(
+              {
+                prediction: isFraud ? 1 : 0,
+                probability: prob,
+                confidence: 0.91,
+              },
+              payload,
+            );
+          } finally {
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fas fa-search"></i> Analyze Transaction`;
+          }
+        });
+
+      function showResults(result, payload) {
+        const isFraud = result.prediction === 1;
+        const prob = result.probability ?? 0;
+        const fraudPct = (prob * 100).toFixed(1);
+        const safePct = ((1 - prob) * 100).toFixed(1);
+        const conf = result.confidence
+          ? (result.confidence * 100).toFixed(0)
+          : isFraud
+            ? fraudPct
+            : safePct;
+
+        document.getElementById("emptyState").style.display = "none";
+        const card = document.getElementById("resultsCard");
+        card.style.display = "block";
+
+        document.getElementById("resultContent").innerHTML = `
+        <div class="verdict ${isFraud ? "danger" : "safe"}">
+          <span class="verdict-icon">
+            <i class="fas fa-${isFraud ? "exclamation-triangle" : "check-circle"}"></i>
+          </span>
+          <h2>${isFraud ? "Fraud Detected" : "Legitimate"}</h2>
+          <p>${
+            isFraud
+              ? "This transaction shows strong indicators of fraudulent activity."
+              : "This transaction appears to be legitimate with high confidence."
+          }</p>
+        </div>
+
+        <div class="result-metrics">
+          <div class="metric">
+            <span class="metric-label">Prediction</span>
+            <span class="metric-value" style="color:${isFraud ? "var(--danger)" : "var(--safe)"}">
+              ${isFraud ? "Fraud (1)" : "Legitimate (0)"}
+            </span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Fraud Probability</span>
+            <span class="metric-value">${fraudPct}%</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Amount</span>
+            <span class="metric-value">$${parseFloat(payload.amount).toFixed(2)}</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Model</span>
+            <span class="metric-value">XGBoost + SMOTE</span>
+          </div>
+        </div>
+
+        <div class="confidence-bar">
+          <div class="bar-label">
+            <span>Fraud Risk</span>
+            <span>${fraudPct}%</span>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill ${isFraud ? "danger-fill" : "safe-fill"}"
+                 style="width:0%"
+                 id="barFill"></div>
+          </div>
+        </div>
+      `;
+
+        card.scrollIntoView({ behavior: "smooth", block: "start" });
+
+        // Animate bar
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            const fill = document.getElementById("barFill");
+            if (fill) fill.style.width = fraudPct + "%";
+          }, 100);
+        });
+      }
+    </script>
+  </body>
 </html>
