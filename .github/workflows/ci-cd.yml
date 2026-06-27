@@ -30,6 +30,7 @@ jobs:
       - name: 📦 Install dependencies
         run: |
           pip install --upgrade pip
+          pip install -r requirements.txt
           pip install --no-cache-dir pytest httpx fastapi
         timeout-minutes: 3
 
