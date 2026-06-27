@@ -2,9 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 env:
   DOCKER_IMAGE: fraud-detection-app
@@ -16,88 +16,89 @@ jobs:
     name: 🧪 Quick Tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    
+
     steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
-    
-    - name: 🐍 Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
-        cache: 'pip'
-    
-    - name: 📦 Install dependencies
-      run: |
-        pip install --upgrade pip
-        pip install --no-cache-dir pytest httpx fastapi
-      timeout-minutes: 3
-    
-    - name: 🏗️ Create test models
-      run: |
-        mkdir -p models
-        python << 'EOF'
-        import pickle
-        import numpy as np
-        from sklearn.ensemble import RandomForestClassifier
-        from sklearn.preprocessing import StandardScaler
-        
-        model = RandomForestClassifier(n_estimators=5, random_state=42)
-        X = np.random.rand(50, 30)
-        y = np.random.randint(0, 2, 50)
-        model.fit(X, y)
-        
-        with open('models/xgboost_model.pkl', 'wb') as f:
-            pickle.dump(model, f)
-        
-        scaler = StandardScaler()
-        scaler.fit(X)
-        with open('models/scaler.pkl', 'wb') as f:
-            pickle.dump(scaler, f)
-        EOF
-    
-    - name: 🧪 Run basic tests
-      run: |
-        pytest tests/test_api.py::test_read_root -v
-        pytest tests/test_api.py::test_health_check -v
-      timeout-minutes: 2
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+          cache: "pip"
+
+      - name: 📦 Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install --no-cache-dir pytest httpx fastapi
+        timeout-minutes: 3
+
+      - name: 🏗️ Create test models
+        run: |
+          mkdir -p models
+          pip install numpy scikit-learn
+          python << 'EOF'
+          import pickle
+          import numpy as np
+          from sklearn.ensemble import RandomForestClassifier
+          from sklearn.preprocessing import StandardScaler
+
+          model = RandomForestClassifier(n_estimators=5, random_state=42)
+          X = np.random.rand(50, 30)
+          y = np.random.randint(0, 2, 50)
+          model.fit(X, y)
+
+          with open('models/xgboost_model.pkl', 'wb') as f:
+              pickle.dump(model, f)
+
+          scaler = StandardScaler()
+          scaler.fit(X)
+          with open('models/scaler.pkl', 'wb') as f:
+              pickle.dump(scaler, f)
+          EOF
+
+      - name: 🧪 Run basic tests
+        run: |
+          pytest tests/test_api.py::test_read_root -v
+          pytest tests/test_api.py::test_health_check -v
+        timeout-minutes: 2
 
   # ==================== CODE QUALITY ====================
-    # ==================== CODE QUALITY ====================
+  # ==================== CODE QUALITY ====================
   code-quality:
     name: 🔍 Code Quality
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
     steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
 
-    - name: 🐍 Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
 
-    - name: 📦 Install linters
-      run: |
-        pip install flake8 black autoflake isort
+      - name: 📦 Install linters
+        run: |
+          pip install flake8 black autoflake isort
 
-    - name: 🧹 Auto-fix with autoflake
-      run: |
-        autoflake --in-place --remove-all-unused-imports --recursive app/ src/ tests/ || true
+      - name: 🧹 Auto-fix with autoflake
+        run: |
+          autoflake --in-place --remove-all-unused-imports --recursive app/ src/ tests/ || true
 
-    - name: 🎨 Auto-fix with black
-      run: |
-        black app/ src/ tests/ --line-length 120 || true
+      - name: 🎨 Auto-fix with black
+        run: |
+          black app/ src/ tests/ --line-length 120 || true
 
-    - name: 🔎 Lint with flake8 (warnings only)
-      run: |
-        flake8 app/ src/ tests/ \
-          --count \
-          --select=E9,F63,F7,F82 \
-          --show-source \
-          --statistics \
-          --max-line-length=120 || true
+      - name: 🔎 Lint with flake8 (warnings only)
+        run: |
+          flake8 app/ src/ tests/ \
+            --count \
+            --select=E9,F63,F7,F82 \
+            --show-source \
+            --statistics \
+            --max-line-length=120 || true
 
   # ==================== DOCKER BUILD ====================
   docker-build:
@@ -106,21 +107,21 @@ jobs:
     needs: quick-test
     timeout-minutes: 20
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    
+
     steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
-    
-    - name: 🐳 Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-    
-    - name: 🏗️ Build Docker image
-      run: |
-        docker build -t ${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }} .
-      timeout-minutes: 15
-    
-    - name: ✅ Docker build complete
-      run: echo "✅ Docker image built successfully"
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐳 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🏗️ Build Docker image
+        run: |
+          docker build -t ${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }} .
+        timeout-minutes: 15
+
+      - name: ✅ Docker build complete
+        run: echo "✅ Docker image built successfully"
 
   # ==================== DEPLOYMENT READY ====================
   deployment-ready:
@@ -128,9 +129,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [quick-test, code-quality]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    
+
     steps:
-    - name: ✅ All checks passed
-      run: |
-        echo "✅ All checks passed!"
-        echo "🚀 Ready for deployment"
+      - name: ✅ All checks passed
+        run: |
+          echo "✅ All checks passed!"
+          echo "🚀 Ready for deployment"
