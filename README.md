@@ -1,3 +1,5 @@
+## DEMO: https://credit-card-fraud-detection-x1da.onrender.com/
+
 # 🛡️ Credit Card Fraud Detection - Complete MLOps Pipeline
 
 [![Tests](https://github.com/emmanuelmassawe/credit-card-fraud-detection/actions/workflows/test.yml/badge.svg)](https://github.com/emmanuelmassawe/credit-card-fraud-detection/actions/workflows/test.yml)
